@@ -1,18 +1,13 @@
 import java.awt.EventQueue;
 
-import javax.swing.JFrame;
-import javax.swing.SpringLayout;
-import javax.swing.JPanel;
+import javax.swing.*;
 import java.awt.Color;
 import java.awt.Dimension;
-import javax.swing.JRadioButton;
 import java.awt.Font;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
-import javax.swing.ButtonGroup;
-import javax.swing.JSpinner;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 
 public class MapReader {
 
@@ -29,6 +25,43 @@ public class MapReader {
     private File fileImported;
     private BufferedReader reader;
     private static int lineCount = 1;
+    private JTable table;
+    private static ArrayList<Pixel> points = new ArrayList<>();
+    private static int screenHeight;
+    private static int screenWidth;
+
+    public static void update(JTable tab) {
+        TableModel t = new DefaultTableModel(new String[] { "#", "Name", "R", "G", "B", "T", "X", "Y" },
+                points.size()) {
+            private static final long serialVersionUID = 1L;
+            boolean[] columnEditables = new boolean[] { false, false, false, false, false, false, false, false };
+
+            public boolean isCellEditable(int row, int column) {
+                return columnEditables[column];
+            }
+        };
+        tab.setModel(t);
+        tab.getColumnModel().getColumn(0).setPreferredWidth(10);
+        tab.getColumnModel().getColumn(1).setPreferredWidth(50);
+        tab.getColumnModel().getColumn(2).setPreferredWidth(10);
+        tab.getColumnModel().getColumn(3).setPreferredWidth(10);
+        tab.getColumnModel().getColumn(4).setPreferredWidth(10);
+        tab.getColumnModel().getColumn(5).setPreferredWidth(10);
+        tab.getColumnModel().getColumn(6).setPreferredWidth(10);
+        tab.getColumnModel().getColumn(7).setPreferredWidth(10);
+        for (int i = 0; i < points.size(); i++) {
+            points.get(i).setPixelNumber(i + 1);
+            t.setValueAt(points.get(i).getPixelNumber(), i, 0);
+            t.setValueAt(points.get(i).getNickName(), i, 1);
+            t.setValueAt(points.get(i).getR(), i, 2);
+            t.setValueAt(points.get(i).getG(), i, 3);
+            t.setValueAt(points.get(i).getB(), i, 4);
+            t.setValueAt(points.get(i).getT(), i, 5);
+            t.setValueAt(points.get(i).getX(), i, 6);
+            t.setValueAt(points.get(i).getY(), i, 7);
+        }
+        Pixel.setPixelCounter(points.size());
+    }
 
     /**
      * Launch the application.
@@ -64,21 +97,20 @@ public class MapReader {
         frame.getContentPane().setLayout(springLayout);
         frame.setMinimumSize(new Dimension(400, 253));
 
-        JPanel panelTabel = new JPanel();
-        springLayout.putConstraint(SpringLayout.SOUTH, panelTabel, 0, SpringLayout.SOUTH, frame.getContentPane());
-        panelTabel.setBackground(Color.GRAY);
-        springLayout.putConstraint(SpringLayout.NORTH, panelTabel, 0, SpringLayout.NORTH, frame.getContentPane());
-        springLayout.putConstraint(SpringLayout.WEST, panelTabel, 125, SpringLayout.WEST, frame.getContentPane());
-        springLayout.putConstraint(SpringLayout.EAST, panelTabel, 0, SpringLayout.EAST, frame.getContentPane());
-        frame.getContentPane().add(panelTabel);
-
+        JScrollPane panelTable = new JScrollPane();
+        springLayout.putConstraint(SpringLayout.SOUTH, panelTable, 0, SpringLayout.SOUTH, frame.getContentPane());
+        panelTable.setBackground(Color.GRAY);
+        springLayout.putConstraint(SpringLayout.NORTH, panelTable, 0, SpringLayout.NORTH, frame.getContentPane());
+        springLayout.putConstraint(SpringLayout.WEST, panelTable, 125, SpringLayout.WEST, frame.getContentPane());
+        springLayout.putConstraint(SpringLayout.EAST, panelTable, 0, SpringLayout.EAST, frame.getContentPane());
+        frame.getContentPane().add(panelTable);
 
         JPanel panelRadio = new JPanel();
         panelRadio.setBackground(new Color(192, 192, 192));
-        springLayout.putConstraint(SpringLayout.NORTH, panelRadio, 0, SpringLayout.NORTH, panelTabel);
+        springLayout.putConstraint(SpringLayout.NORTH, panelRadio, 0, SpringLayout.NORTH, panelTable);
         springLayout.putConstraint(SpringLayout.WEST, panelRadio, 0, SpringLayout.WEST, frame.getContentPane());
         springLayout.putConstraint(SpringLayout.SOUTH, panelRadio, 100, SpringLayout.NORTH, frame.getContentPane());
-        springLayout.putConstraint(SpringLayout.EAST, panelRadio, 0, SpringLayout.WEST, panelTabel);
+        springLayout.putConstraint(SpringLayout.EAST, panelRadio, 0, SpringLayout.WEST, panelTable);
         frame.getContentPane().add(panelRadio);
         SpringLayout sl_panelRadio = new SpringLayout();
         panelRadio.setLayout(sl_panelRadio);
@@ -114,12 +146,14 @@ public class MapReader {
         panelRadio.add(CustomNum);
         CustomNum.setVisible(false);
 
-
         JPanel panelButtons = new JPanel();
         springLayout.putConstraint(SpringLayout.NORTH, panelButtons, 0, SpringLayout.SOUTH, panelRadio);
         springLayout.putConstraint(SpringLayout.WEST, panelButtons, 0, SpringLayout.WEST, frame.getContentPane());
         springLayout.putConstraint(SpringLayout.SOUTH, panelButtons, 0, SpringLayout.SOUTH, frame.getContentPane());
-        springLayout.putConstraint(SpringLayout.EAST, panelButtons, 0, SpringLayout.WEST, panelTabel);
+        springLayout.putConstraint(SpringLayout.EAST, panelButtons, 0, SpringLayout.WEST, panelTable);
+
+        table = new JTable();
+        panelTable.setViewportView(table);
         frame.getContentPane().add(panelButtons);
         SpringLayout sl_panelButtons = new SpringLayout();
         panelButtons.setLayout(sl_panelButtons);
@@ -140,7 +174,6 @@ public class MapReader {
                 jfc.setDialogTitle("Choose a Mapper preset");
                 int returnValue = jfc.showOpenDialog(null);
                 // int returnValue = jfc.showSaveDialog(null);
-
                 if (returnValue == JFileChooser.APPROVE_OPTION) {
                     fileImported = jfc.getSelectedFile();
                     fileUploaded = true;
@@ -150,8 +183,9 @@ public class MapReader {
                         // TODO Auto-generated catch block
                         e1.printStackTrace();
                     }
-
                     readImport(reader);
+                    if (points.size()>0)
+                        update(table);
                 }
             }
         });
@@ -181,7 +215,6 @@ public class MapReader {
     public static void readImport(BufferedReader bufferedText){
         try {
             String version = bufferedText.readLine();
-            System.out.println(version);
 
             if (version.contentEquals("v1.0")) {
                 readFile1p0(bufferedText);
@@ -194,14 +227,30 @@ public class MapReader {
     }
 
     public static void readFile1p0(BufferedReader mapperPoints){
-        System.out.println("Now reading a v1.0 file");
         try {
-
-            String line = mapperPoints.readLine();
-            while(line != null) {
-                System.out.println("Line number " + lineCount + " says: ");
-                System.out.println(line);
-                System.out.println();
+            String line = "";
+            String name;
+            int r;
+            int g;
+            int b;
+            int t;
+            int x;
+            int y;
+            for(int i = 0; line != null; i++) {
+                if (i > 0) {
+                    mapperPoints.readLine();
+                    name = mapperPoints.readLine();
+                    r = Integer.parseInt(mapperPoints.readLine());
+                    g = Integer.parseInt(mapperPoints.readLine());
+                    b = Integer.parseInt(mapperPoints.readLine());
+                    t = Integer.parseInt(mapperPoints.readLine());
+                    x = Integer.parseInt(mapperPoints.readLine());
+                    y = Integer.parseInt(mapperPoints.readLine());
+                    points.add(new Pixel(name, r, g, b, t, x, y));
+                } else {
+                    screenWidth = Integer.parseInt(mapperPoints.readLine());
+                    screenHeight = Integer.parseInt(mapperPoints.readLine());
+                }
                 line = mapperPoints.readLine();
                 lineCount++;
             }
