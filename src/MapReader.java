@@ -1,9 +1,6 @@
-import java.awt.EventQueue;
+import java.awt.*;
 
 import javax.swing.*;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.DefaultTableModel;
@@ -29,12 +26,13 @@ public class MapReader {
     private static ArrayList<Pixel> points = new ArrayList<>();
     private static int screenHeight;
     private static int screenWidth;
+    private Robot r = new Robot();
 
     public static void update(JTable tab) {
-        TableModel t = new DefaultTableModel(new String[] { "#", "Name", "R", "G", "B", "T", "X", "Y" },
+        TableModel t = new DefaultTableModel(new String[]{"#", "Name", "R", "G", "B", "T", "X", "Y"},
                 points.size()) {
             private static final long serialVersionUID = 1L;
-            boolean[] columnEditables = new boolean[] { false, false, false, false, false, false, false, false };
+            boolean[] columnEditables = new boolean[]{false, false, false, false, false, false, false, false};
 
             public boolean isCellEditable(int row, int column) {
                 return columnEditables[column];
@@ -82,7 +80,7 @@ public class MapReader {
     /**
      * Create the application.
      */
-    public MapReader() {
+    public MapReader() throws AWTException {
         initialize();
     }
 
@@ -159,6 +157,55 @@ public class MapReader {
         panelButtons.setLayout(sl_panelButtons);
 
         JButton btnStart = new JButton("Start");
+        btnStart.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                boolean is = false;
+                boolean was = false;
+                boolean printed = false;
+                int mode = 0;
+                if (TopLayer.isSelected((rdbtnOR.getModel()))) {
+                    mode = 1;
+                } else if (TopLayer.isSelected((rdbtnAND.getModel()))) {
+                    mode = 2;
+                }
+                if (mode == 1) {
+                    while (true) {
+                        is = false;
+                        for (Pixel p : points) {
+                            if (Math.abs(r.getPixelColor(p.getX(), p.getY()).getRed() - p.getR()) <= p.getT() && Math.abs(r.getPixelColor(p.getX(), p.getY()).getGreen() - p.getG()) <= p.getT() && Math.abs(r.getPixelColor(p.getX(), p.getY()).getBlue() - p.getB()) <= p.getT()) {
+                                is = true;
+                                break;
+                            }
+                        }
+                        if (is && !was) {
+                            System.out.println("yes");
+                            was = true;
+                        } else if (!is && was) {
+                            System.out.println("no");
+                            was = false;
+                        }
+                    }
+                } else if (mode == 2){
+                    while (true){
+                        is = true;
+                        for (Pixel p : points) {
+                            if (!(Math.abs(r.getPixelColor(p.getX(), p.getY()).getRed() - p.getR()) <= p.getT()) || !(Math.abs(r.getPixelColor(p.getX(), p.getY()).getGreen() - p.getG()) <= p.getT()) || !(Math.abs(r.getPixelColor(p.getX(), p.getY()).getBlue() - p.getB()) <= p.getT())) {
+                                is = false;
+                                break;
+                            }
+
+                        }
+                        if (is && !was) {
+                            System.out.println("yes");
+                            was = true;
+                        } else if (!is && was) {
+                            System.out.println("no");
+                            was = false;
+                        }
+                    }
+                }
+            }
+        });
         sl_panelButtons.putConstraint(SpringLayout.NORTH, btnStart, -50, SpringLayout.SOUTH, panelButtons);
         sl_panelButtons.putConstraint(SpringLayout.WEST, btnStart, 5, SpringLayout.WEST, panelButtons);
         sl_panelButtons.putConstraint(SpringLayout.SOUTH, btnStart, -5, SpringLayout.SOUTH, panelButtons);
@@ -184,7 +231,7 @@ public class MapReader {
                         e1.printStackTrace();
                     }
                     readImport(reader);
-                    if (points.size()>0)
+                    if (points.size() > 0)
                         update(table);
                 }
             }
@@ -212,7 +259,7 @@ public class MapReader {
         panelButtons.add(btnSettings);
     }
 
-    public static void readImport(BufferedReader bufferedText){
+    public static void readImport(BufferedReader bufferedText) {
         try {
             String version = bufferedText.readLine();
 
@@ -226,7 +273,7 @@ public class MapReader {
         }
     }
 
-    public static void readFile1p0(BufferedReader mapperPoints){
+    public static void readFile1p0(BufferedReader mapperPoints) {
         try {
             String line = "";
             String name;
@@ -236,7 +283,7 @@ public class MapReader {
             int t;
             int x;
             int y;
-            for(int i = 0; line != null; i++) {
+            for (int i = 0; line != null; i++) {
                 if (i > 0) {
                     mapperPoints.readLine();
                     name = mapperPoints.readLine();
@@ -246,7 +293,7 @@ public class MapReader {
                     t = Integer.parseInt(mapperPoints.readLine());
                     x = Integer.parseInt(mapperPoints.readLine());
                     y = Integer.parseInt(mapperPoints.readLine());
-                    points.add(new Pixel(name, r, g, b, t, x, y));
+                    points.add(new Pixel(name, 0, r, g, b, t, x, y));
                 } else {
                     screenWidth = Integer.parseInt(mapperPoints.readLine());
                     screenHeight = Integer.parseInt(mapperPoints.readLine());
