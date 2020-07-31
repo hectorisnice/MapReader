@@ -27,6 +27,7 @@ public class MapReader {
     private static int screenHeight;
     private static int screenWidth;
     private Robot r = new Robot();
+    private boolean abort = false;
 
     public static void update(JTable tab) {
         TableModel t = new DefaultTableModel(new String[]{"#", "Name", "R", "G", "B", "T", "X", "Y"},
@@ -156,9 +157,9 @@ public class MapReader {
         SpringLayout sl_panelButtons = new SpringLayout();
         panelButtons.setLayout(sl_panelButtons);
 
-        JButton btnStart = new JButton("Start");
-        btnStart.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+        SwingWorker<Integer, Integer> scan = new SwingWorker<Integer, Integer>() {
+            @Override
+            protected Integer doInBackground() throws Exception {
                 boolean is = false;
                 boolean was = false;
                 boolean printed = false;
@@ -169,7 +170,7 @@ public class MapReader {
                     mode = 2;
                 }
                 if (mode == 1) {
-                    while (true) {
+                    while (!abort) {
                         is = false;
                         for (Pixel p : points) {
                             if (Math.abs(r.getPixelColor(p.getX(), p.getY()).getRed() - p.getR()) <= p.getT() && Math.abs(r.getPixelColor(p.getX(), p.getY()).getGreen() - p.getG()) <= p.getT() && Math.abs(r.getPixelColor(p.getX(), p.getY()).getBlue() - p.getB()) <= p.getT()) {
@@ -185,8 +186,8 @@ public class MapReader {
                             was = false;
                         }
                     }
-                } else if (mode == 2){
-                    while (true){
+                } else if (mode == 2) {
+                    while (!abort) {
                         is = true;
                         for (Pixel p : points) {
                             if (!(Math.abs(r.getPixelColor(p.getX(), p.getY()).getRed() - p.getR()) <= p.getT()) || !(Math.abs(r.getPixelColor(p.getX(), p.getY()).getGreen() - p.getG()) <= p.getT()) || !(Math.abs(r.getPixelColor(p.getX(), p.getY()).getBlue() - p.getB()) <= p.getT())) {
@@ -203,6 +204,22 @@ public class MapReader {
                             was = false;
                         }
                     }
+
+                }
+                abort = false;
+                return null;
+            }
+        };
+
+        JButton btnStart = new JButton("Start");
+        btnStart.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (btnStart.getText().equals("Start")) {
+                    scan.execute();
+                    btnStart.setText("Stop");
+                } else {
+                    abort = true;
+                    btnStart.setText("Start");
                 }
             }
         });
@@ -211,6 +228,7 @@ public class MapReader {
         sl_panelButtons.putConstraint(SpringLayout.SOUTH, btnStart, -5, SpringLayout.SOUTH, panelButtons);
         sl_panelButtons.putConstraint(SpringLayout.EAST, btnStart, -5, SpringLayout.EAST, panelButtons);
         panelButtons.add(btnStart);
+
 
         JButton btnImport = new JButton("Import");
         btnImport.addActionListener(new ActionListener() {
