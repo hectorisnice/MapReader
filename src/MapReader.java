@@ -28,6 +28,9 @@ public class MapReader {
     private static int screenWidth;
     private Robot r = new Robot();
     private boolean abort = false;
+    private JLabel lblMismatch;
+    JRadioButton rdbtnOR;
+    JRadioButton rdbtnAND;
 
     public static void update(JTable tab) {
         TableModel t = new DefaultTableModel(new String[]{"#", "Name", "R", "G", "B", "T", "X", "Y"},
@@ -97,24 +100,23 @@ public class MapReader {
         frame.setMinimumSize(new Dimension(400, 253));
 
         JScrollPane panelTable = new JScrollPane();
+        springLayout.putConstraint(SpringLayout.WEST, panelTable, 134, SpringLayout.WEST, frame.getContentPane());
         springLayout.putConstraint(SpringLayout.SOUTH, panelTable, 0, SpringLayout.SOUTH, frame.getContentPane());
         panelTable.setBackground(Color.GRAY);
         springLayout.putConstraint(SpringLayout.NORTH, panelTable, 0, SpringLayout.NORTH, frame.getContentPane());
-        springLayout.putConstraint(SpringLayout.WEST, panelTable, 125, SpringLayout.WEST, frame.getContentPane());
         springLayout.putConstraint(SpringLayout.EAST, panelTable, 0, SpringLayout.EAST, frame.getContentPane());
         frame.getContentPane().add(panelTable);
 
         JPanel panelRadio = new JPanel();
         panelRadio.setBackground(new Color(192, 192, 192));
-        springLayout.putConstraint(SpringLayout.NORTH, panelRadio, 0, SpringLayout.NORTH, panelTable);
+        springLayout.putConstraint(SpringLayout.NORTH, panelRadio, 0, SpringLayout.NORTH, frame.getContentPane());
         springLayout.putConstraint(SpringLayout.WEST, panelRadio, 0, SpringLayout.WEST, frame.getContentPane());
-        springLayout.putConstraint(SpringLayout.SOUTH, panelRadio, 100, SpringLayout.NORTH, frame.getContentPane());
         springLayout.putConstraint(SpringLayout.EAST, panelRadio, 0, SpringLayout.WEST, panelTable);
         frame.getContentPane().add(panelRadio);
         SpringLayout sl_panelRadio = new SpringLayout();
         panelRadio.setLayout(sl_panelRadio);
 
-        JRadioButton rdbtnAND = new JRadioButton("AND");
+        rdbtnAND = new JRadioButton("AND");
         sl_panelRadio.putConstraint(SpringLayout.WEST, rdbtnAND, 20, SpringLayout.WEST, panelRadio);
         sl_panelRadio.putConstraint(SpringLayout.EAST, rdbtnAND, -20, SpringLayout.EAST, panelRadio);
         TopLayer.add(rdbtnAND);
@@ -122,7 +124,7 @@ public class MapReader {
         sl_panelRadio.putConstraint(SpringLayout.NORTH, rdbtnAND, 5, SpringLayout.NORTH, panelRadio);
         panelRadio.add(rdbtnAND);
 
-        JRadioButton rdbtnOR = new JRadioButton("OR");
+        rdbtnOR = new JRadioButton("OR");
         rdbtnOR.setFont(new Font("Lucida Grande", Font.PLAIN, 12));
         sl_panelRadio.putConstraint(SpringLayout.NORTH, rdbtnOR, 0, SpringLayout.SOUTH, rdbtnAND);
         sl_panelRadio.putConstraint(SpringLayout.WEST, rdbtnOR, 0, SpringLayout.WEST, rdbtnAND);
@@ -146,10 +148,11 @@ public class MapReader {
         CustomNum.setVisible(false);
 
         JPanel panelButtons = new JPanel();
-        springLayout.putConstraint(SpringLayout.NORTH, panelButtons, 0, SpringLayout.SOUTH, panelRadio);
+        springLayout.putConstraint(SpringLayout.NORTH, panelButtons, 100, SpringLayout.NORTH, frame.getContentPane());
         springLayout.putConstraint(SpringLayout.WEST, panelButtons, 0, SpringLayout.WEST, frame.getContentPane());
-        springLayout.putConstraint(SpringLayout.SOUTH, panelButtons, 0, SpringLayout.SOUTH, frame.getContentPane());
         springLayout.putConstraint(SpringLayout.EAST, panelButtons, 0, SpringLayout.WEST, panelTable);
+        springLayout.putConstraint(SpringLayout.SOUTH, panelRadio, 0, SpringLayout.NORTH, panelButtons);
+        springLayout.putConstraint(SpringLayout.SOUTH, panelButtons, 0, SpringLayout.SOUTH, frame.getContentPane());
 
         table = new JTable();
         panelTable.setViewportView(table);
@@ -157,69 +160,26 @@ public class MapReader {
         SpringLayout sl_panelButtons = new SpringLayout();
         panelButtons.setLayout(sl_panelButtons);
 
-        SwingWorker<Integer, Integer> scan = new SwingWorker<Integer, Integer>() {
-            @Override
-            protected Integer doInBackground() throws Exception {
-                boolean is = false;
-                boolean was = false;
-                boolean printed = false;
-                int mode = 0;
-                if (TopLayer.isSelected((rdbtnOR.getModel()))) {
-                    mode = 1;
-                } else if (TopLayer.isSelected((rdbtnAND.getModel()))) {
-                    mode = 2;
-                }
-                if (mode == 1) {
-                    while (!abort) {
-                        is = false;
-                        for (Pixel p : points) {
-                            if (Math.abs(r.getPixelColor(p.getX(), p.getY()).getRed() - p.getR()) <= p.getT() && Math.abs(r.getPixelColor(p.getX(), p.getY()).getGreen() - p.getG()) <= p.getT() && Math.abs(r.getPixelColor(p.getX(), p.getY()).getBlue() - p.getB()) <= p.getT()) {
-                                is = true;
-                                break;
-                            }
-                        }
-                        if (is && !was) {
-                            System.out.println("yes");
-                            was = true;
-                        } else if (!is && was) {
-                            System.out.println("no");
-                            was = false;
-                        }
-                    }
-                } else if (mode == 2) {
-                    while (!abort) {
-                        is = true;
-                        for (Pixel p : points) {
-                            if (!(Math.abs(r.getPixelColor(p.getX(), p.getY()).getRed() - p.getR()) <= p.getT()) || !(Math.abs(r.getPixelColor(p.getX(), p.getY()).getGreen() - p.getG()) <= p.getT()) || !(Math.abs(r.getPixelColor(p.getX(), p.getY()).getBlue() - p.getB()) <= p.getT())) {
-                                is = false;
-                                break;
-                            }
-
-                        }
-                        if (is && !was) {
-                            System.out.println("yes");
-                            was = true;
-                        } else if (!is && was) {
-                            System.out.println("no");
-                            was = false;
-                        }
-                    }
-
-                }
-                abort = false;
-                return null;
-            }
-        };
-
         JButton btnStart = new JButton("Start");
         btnStart.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (btnStart.getText().equals("Start")) {
-                    scan.execute();
-                    btnStart.setText("Stop");
+                if (TopLayer.isSelected((rdbtnOR.getModel())) || TopLayer.isSelected((rdbtnAND.getModel()))){
+                    if (screenHeight == Toolkit.getDefaultToolkit().getScreenSize().getHeight() && screenWidth == Toolkit.getDefaultToolkit().getScreenSize().getWidth()) {
+                        lblMismatch.setVisible(false);
+                        if (btnStart.getText().equals("Start")) {
+                            scan();
+                            btnStart.setText("Stop");
+                        } else {
+                            abort = true;
+                            btnStart.setText("Start");
+                        }
+                    } else {
+                        lblMismatch.setText("Screen Size Mismatch");
+                        lblMismatch.setVisible(true);
+                    }
                 } else {
-                    abort = true;
-                    btnStart.setText("Start");
+                    lblMismatch.setText("Select Mode");
+                    lblMismatch.setVisible(true);
                 }
             }
         });
@@ -251,6 +211,7 @@ public class MapReader {
                     readImport(reader);
                     if (points.size() > 0)
                         update(table);
+                    lblMismatch.setVisible(false);
                 }
             }
         });
@@ -275,6 +236,14 @@ public class MapReader {
         sl_panelButtons.putConstraint(SpringLayout.WEST, btnSettings, 0, SpringLayout.WEST, btnEdit);
         sl_panelButtons.putConstraint(SpringLayout.EAST, btnSettings, 0, SpringLayout.EAST, btnEdit);
         panelButtons.add(btnSettings);
+
+        lblMismatch = new JLabel("Screen Size Mismatch");
+        sl_panelButtons.putConstraint(SpringLayout.WEST, lblMismatch, -4, SpringLayout.WEST, btnStart);
+        sl_panelButtons.putConstraint(SpringLayout.SOUTH, lblMismatch, -4, SpringLayout.NORTH, btnStart);
+        sl_panelButtons.putConstraint(SpringLayout.EAST, lblMismatch, 4, SpringLayout.EAST, btnStart);
+        lblMismatch.setHorizontalAlignment(SwingConstants.CENTER);
+        panelButtons.add(lblMismatch);
+        lblMismatch.setVisible(false);
     }
 
     public static void readImport(BufferedReader bufferedText) {
@@ -324,5 +293,65 @@ public class MapReader {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+    private void scan(){
+        SwingWorker<Integer, Integer> scan = new SwingWorker<Integer, Integer>() {
+            @Override
+            protected Integer doInBackground() throws Exception {
+                System.out.println("scanning");
+                boolean is = false;
+                boolean was = false;
+                boolean printed = false;
+                int mode = 0;
+                if (TopLayer.isSelected((rdbtnOR.getModel()))) {
+                    mode = 1;
+                    System.out.println("starting in OR");
+                } else if (TopLayer.isSelected((rdbtnAND.getModel()))) {
+                    mode = 2;
+                    System.out.println("starting in AND");
+                }
+                if (mode == 1) {
+                    while (!abort) {
+                        is = false;
+                        for (Pixel p : points) {
+                            if (Math.abs(r.getPixelColor(p.getX(), p.getY()).getRed() - p.getR()) <= p.getT() && Math.abs(r.getPixelColor(p.getX(), p.getY()).getGreen() - p.getG()) <= p.getT() && Math.abs(r.getPixelColor(p.getX(), p.getY()).getBlue() - p.getB()) <= p.getT()) {
+                                is = true;
+                                break;
+                            }
+                        }
+                        if (is && !was) {
+                            System.out.println("yes");
+                            was = true;
+                        } else if (!is && was) {
+                            System.out.println("no");
+                            was = false;
+                        }
+                    }
+                } else if (mode == 2) {
+                    while (!abort) {
+                        is = true;
+                        for (Pixel p : points) {
+                            if (!(Math.abs(r.getPixelColor(p.getX(), p.getY()).getRed() - p.getR()) <= p.getT()) || !(Math.abs(r.getPixelColor(p.getX(), p.getY()).getGreen() - p.getG()) <= p.getT()) || !(Math.abs(r.getPixelColor(p.getX(), p.getY()).getBlue() - p.getB()) <= p.getT())) {
+                                is = false;
+                                break;
+                            }
+
+                        }
+                        if (is && !was) {
+                            System.out.println("yes");
+                            was = true;
+                        } else if (!is && was) {
+                            System.out.println("no");
+                            was = false;
+                        }
+                    }
+
+                }
+                abort = false;
+                System.out.println("stopped");
+                return null;
+            }
+        };
+        scan.execute();
     }
 }
