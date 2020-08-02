@@ -1,3 +1,4 @@
+
 import java.awt.*;
 
 import javax.swing.*;
@@ -26,6 +27,7 @@ public class MapReader {
     private static ArrayList<Pixel> points = new ArrayList<>();
     private static int screenHeight;
     private static int screenWidth;
+    private static String serialPort;
     private Robot r = new Robot();
     private boolean abort = false;
     private JLabel lblMismatch;
@@ -229,6 +231,12 @@ public class MapReader {
         btnEdit.setVisible(false);
 
         JButton btnSettings = new JButton("Settings");
+        btnSettings.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Settings.launch();
+            }
+        });
         sl_panelButtons.putConstraint(SpringLayout.NORTH, btnEdit, 1, SpringLayout.SOUTH, btnSettings);
         sl_panelButtons.putConstraint(SpringLayout.SOUTH, btnEdit, 25, SpringLayout.SOUTH, btnSettings);
         sl_panelButtons.putConstraint(SpringLayout.NORTH, btnSettings, 1, SpringLayout.SOUTH, btnImport);
@@ -294,6 +302,15 @@ public class MapReader {
             e.printStackTrace();
         }
     }
+
+    public static String getSerialPort(){
+        return serialPort;
+    }
+
+    public static void setSerialPort(String Serial) {
+        serialPort = Serial;
+    }
+
     private void scan(){
         SwingWorker<Integer, Integer> scan = new SwingWorker<Integer, Integer>() {
             @Override
@@ -321,6 +338,8 @@ public class MapReader {
                         }
                         if (is && !was) {
                             System.out.println("yes");
+
+                            ArdShock.turnON(serialPort);
                             was = true;
                         } else if (!is && was) {
                             System.out.println("no");
@@ -339,6 +358,7 @@ public class MapReader {
                         }
                         if (is && !was) {
                             System.out.println("yes");
+                            ArdShock.turnON(serialPort);
                             was = true;
                         } else if (!is && was) {
                             System.out.println("no");
