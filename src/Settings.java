@@ -43,7 +43,8 @@ public class Settings {
      */
     private void initialize() {
         frame = new JFrame();
-        frame.setBounds(100, 100, 300, 200);
+        frame.setTitle("Settings");
+        frame.setBounds(MapReader.getWindow().getFrame().getX() + MapReader.getWindow().getFrame().getWidth(), MapReader.getWindow().getFrame().getY(), 300, 200);
         frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         SpringLayout springLayout = new SpringLayout();
         frame.getContentPane().setLayout(springLayout);

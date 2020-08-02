@@ -31,6 +31,7 @@ public class MapReader {
     private Robot r = new Robot();
     private boolean abort = false;
     private JLabel lblMismatch;
+    private static MapReader window;
     JRadioButton rdbtnOR;
     JRadioButton rdbtnAND;
 
@@ -74,7 +75,7 @@ public class MapReader {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    MapReader window = new MapReader();
+                    window = new MapReader();
                     window.frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -95,6 +96,7 @@ public class MapReader {
      */
     private void initialize() {
         frame = new JFrame();
+        frame.setTitle("Map Reader");
         frame.setBounds(100, 100, 450, 300);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         SpringLayout springLayout = new SpringLayout();
@@ -374,4 +376,14 @@ public class MapReader {
         };
         scan.execute();
     }
+
+    public static MapReader getWindow() {
+        return window;
+    }
+
+    public JFrame getFrame() {
+        return frame;
+    }
+
+
 }
