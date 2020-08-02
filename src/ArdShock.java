@@ -3,6 +3,11 @@ import jssc.SerialPortException;
 
 public class ArdShock {
 
+    //mac is "/dev/tty.usbmodem14201"
+	//linux is "/dev/ttyACM0"
+	//win is "COM1"
+	//Numbers change from port to port
+    
     public static void main(String[] args) {
         turnON(null);
     }
